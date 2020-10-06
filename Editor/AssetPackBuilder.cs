@@ -79,7 +79,7 @@ namespace Khepri.PlayAssetDelivery.Editor
 
 	    internal static AssetPackBundle[] GetBundles(string path)
 	    {
-		    return Directory.GetFiles(path)
+		    return Directory.GetFiles ( path, "*.bundle", SearchOption.AllDirectories )
 			    .Select(file => new AssetPackBundle(file, GetAssetPackGroupSchema(file)))
 			    .Where(pack => pack.IsValid)
 			    .ToArray();
@@ -94,10 +94,13 @@ namespace Khepri.PlayAssetDelivery.Editor
 		{
 			return AddressableAssetSettingsDefaultObject.Settings.groups
 				.Where(group => group.HasSchema<AssetPackGroupSchema>())
-				.Where(group => Path.GetFileName(bundle).StartsWith(group.Name.ToLower()))
+				.Where(group => Path.GetFileName(bundle).StartsWith ( GroupNameToFileName ( group.Name ) ) )
 				.Select(group => group.GetSchema<AssetPackGroupSchema>())
 				.FirstOrDefault();
 		}
+
+		private static string GroupNameToFileName ( string name ) =>
+			name.Replace ( " ", "" ).ToLowerInvariant ();
 
 		private static void WriteAssetPackConfig(IEnumerable<AssetPackBundle> packBundles)
 		{

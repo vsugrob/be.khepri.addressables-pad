@@ -34,5 +34,9 @@ namespace Khepri.PlayAssetDelivery.Editor
         {
             File.Delete(Bundle);
         }
-    }
+
+		public override string ToString () {
+			return Name;
+		}
+	}
 }
