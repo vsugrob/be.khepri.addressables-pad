@@ -31,12 +31,19 @@ namespace Khepri.PlayAssetDelivery.Editor
 			{
 				return null;
 			}
+			// TODO: move install-time assetbundles to separate directory and add it as AssetPack.
+			assetPackConfig.AddAssetsFolder ( AssetPackBundleConfig.InstallTimePackName, Addressables.BuildPath, AssetPackDeliveryMode.InstallTime );
+			#if MATCH_ASSETPACK_TO_ASSETBUNDLE
 			var bundles = GetBundles(Addressables.BuildPath);
 			foreach (var bundle in bundles)
 			{
 				assetPackConfig.AssetPacks.Add(bundle.Name, bundle.CreateAssetPack(textureCompressionFormat));
 			}
-			WriteAssetPackConfig(bundles);;
+			WriteAssetPackConfig(bundles);
+			#else
+			// All assets are packed into single AssetPack.
+			WriteAssetPackConfig ();
+			#endif
 			AssetPackConfigSerializer.SaveConfig(assetPackConfig);
 			return assetPackConfig;
 		}
@@ -106,6 +113,15 @@ namespace Khepri.PlayAssetDelivery.Editor
 		{
 			AssetPackBundleConfig config = GetOrCreateConfig();
 			config.packs = packBundles.Select(pack => pack.Name).ToArray();
+			Debug.LogFormat("[{0}.{1}] path={2}", nameof(AssetPackBuilder), nameof(WriteAssetPackConfig), AssetPackBundleConfig.PATH);
+			EditorUtility.SetDirty(config);
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+
+		private static void WriteAssetPackConfig () {
+			var config = GetOrCreateConfig ();
+			config.packs = new [] { AssetPackBundleConfig.InstallTimePackName };
 			Debug.LogFormat("[{0}.{1}] path={2}", nameof(AssetPackBuilder), nameof(WriteAssetPackConfig), AssetPackBundleConfig.PATH);
 			EditorUtility.SetDirty(config);
 			AssetDatabase.SaveAssets();

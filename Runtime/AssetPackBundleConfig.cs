@@ -5,6 +5,7 @@ namespace Khepri.AssetDelivery
 {
     public class AssetPackBundleConfig : ScriptableObject
     {
+        public const string InstallTimePackName = "InstallTimeAssetPack";
         public const string FILENAME = "AssetPacks";
         public const string PATH = "Assets/Resources/AssetPacks.asset";
 
