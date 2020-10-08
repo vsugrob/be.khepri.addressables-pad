@@ -4,7 +4,7 @@ using System.ComponentModel;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace Khepri.AssetDelivery.ResourceProviders {
-	[DisplayName ( "Async Asset Pack Bundle Provider" )]
+	[DisplayName ( "AssetBundle Google PAD Provider" )]
 	public class AssetBundleGooglePadProvider : AssetBundleProvider {
 		public bool UseGooglePad => AndroidBuildTypeConfig.Singleton.IsAabBuild &&
 			#if UNITY_ANDROID && !UNITY_EDITOR

@@ -1,5 +1,7 @@
 ﻿using Google.Play.AssetDelivery;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
@@ -35,7 +37,9 @@ namespace Khepri.AssetDelivery.ResourceProviders {
 		}
 
         private void BeginOperation ( string packName, string path ) {
-            UnityEngine.Debug.Log ( $"AssetBundleGooglePadResource.BeginOperation: {packName}, {path}" );   // TODO: remove.
+            var pathInAssetPack = GetAssetBundlePath ( path );
+            // Uncomment to debug resource loading failures.
+            //UnityEngine.Debug.Log ( $"AssetBundleGooglePadResource.BeginOperation, pack: {packName}, path: {path}, resolved path: {pathInAssetPack}" );
             // Google PAD API doesn't like to receive parallel requests for the same asset pack.
             if ( !PacksByName.TryGetValue ( packName, out var packRequest ) ) {
                 packRequest = PlayAssetDelivery.RetrieveAssetPackAsync ( packName );
@@ -50,10 +54,19 @@ namespace Khepri.AssetDelivery.ResourceProviders {
                     return;
                 }
 
-			    var bundleRequest = packRequest.LoadAssetBundleAsync ( path );
+			    var bundleRequest = packRequest.LoadAssetBundleAsync ( pathInAssetPack );
 				bundleRequest.completed += BundleRequest_completed;
 		    }
 		}
+
+        private static Regex assetBundlePathRegex = new Regex ( @"/base\.apk!/assets/aa/(?<Path>.*)", RegexOptions.Compiled );
+        private static string GetAssetBundlePath ( string jarFilePath ) {
+            var m = assetBundlePathRegex.Match ( jarFilePath );
+            if ( !m.Success )
+                throw new InvalidOperationException ( $"Не удалось извлечь путь к главному APK-файлу. Исходный путь: {Application.streamingAssetsPath}" );
+
+            return m.Groups ["Path"].Value;
+        }
 
 		private void BundleRequest_completed ( AsyncOperation op ) {
 			retrievedAssetBundle = ( op as AssetBundleCreateRequest )?.assetBundle;
