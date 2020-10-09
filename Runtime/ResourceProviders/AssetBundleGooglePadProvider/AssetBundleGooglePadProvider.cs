@@ -1,6 +1,7 @@
 ﻿using Google.Play.AssetDelivery;
 using System.Collections.Generic;
 using System.ComponentModel;
+using UnityEngine;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace Khepri.AssetDelivery.ResourceProviders {
@@ -14,6 +15,8 @@ namespace Khepri.AssetDelivery.ResourceProviders {
 			#endif
 		internal Dictionary <string, PlayAssetPackRequest> PacksByName { get; } =
 			 new Dictionary <string, PlayAssetPackRequest> ();
+		internal Dictionary <PlayAssetPackRequest, Dictionary <string, AssetBundleCreateRequest>> AssetBundleCreateRequestsByPack { get; } =
+			 new Dictionary <PlayAssetPackRequest, Dictionary <string, AssetBundleCreateRequest>> ();
 
 		/// <inheritdoc/>
         public override void Provide ( ProvideHandle providerInterface ) {

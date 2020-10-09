@@ -14,6 +14,7 @@ namespace Khepri.AssetDelivery.ResourceProviders {
         private AssetBundle retrievedAssetBundle;
         public AssetBundleGooglePadProvider Provider { get; }
         private Dictionary <string, PlayAssetPackRequest> PacksByName => Provider.PacksByName;
+        private Dictionary <PlayAssetPackRequest, Dictionary <string, AssetBundleCreateRequest>> AssetBundleCreateRequestsByPack => Provider.AssetBundleCreateRequestsByPack;
 
         internal AssetBundleGooglePadResource ( AssetBundleGooglePadProvider provider ) {
             Provider = provider;
@@ -53,9 +54,21 @@ namespace Khepri.AssetDelivery.ResourceProviders {
                     UnityEngine.Debug.LogError ( $"Error loading asset pack {packName}: {packRequest.Error}" );
                     return;
                 }
+                // Reuse previously issued AssetBundleCreateRequest.
+                if ( !AssetBundleCreateRequestsByPack.TryGetValue ( packRequest, out var abReqsByPath ) ) {
+                    abReqsByPath = new Dictionary <string, AssetBundleCreateRequest> ();
+                    AssetBundleCreateRequestsByPack [packRequest] = abReqsByPath;
+                }
 
-			    var bundleRequest = packRequest.LoadAssetBundleAsync ( pathInAssetPack );
-				bundleRequest.completed += BundleRequest_completed;
+                if ( !abReqsByPath.TryGetValue ( pathInAssetPack, out var bundleRequest ) ) {
+                    bundleRequest = packRequest.LoadAssetBundleAsync ( pathInAssetPack );
+                    abReqsByPath [pathInAssetPack] = bundleRequest;
+                }
+
+			    if ( bundleRequest.isDone )
+                    BundleRequest_completed ( bundleRequest );
+                else
+				    bundleRequest.completed += BundleRequest_completed;
 		    }
 		}
 
